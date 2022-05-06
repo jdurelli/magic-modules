@@ -1,6 +1,7 @@
 resource "google_monitoring_uptime_check_config" "<%= ctx[:primary_resource_id] %>" {
   display_name = "<%= ctx[:vars]["display_name"] %>"
   timeout      = "60s"
+  checker_type = "STATIC_IP_CHECKERS"
 
   http_check {
     path = "some-path"

@@ -11,6 +11,7 @@ func TestAccMonitoringUptimeCheckConfig_update(t *testing.T) {
 	t.Parallel()
 	project := getTestProjectFromEnv()
 	host := "192.168.1.1"
+	suffix := randString(t, 4)
 
 	vcrTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -18,7 +19,7 @@ func TestAccMonitoringUptimeCheckConfig_update(t *testing.T) {
 		CheckDestroy: testAccCheckMonitoringUptimeCheckConfigDestroyProducer(t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMonitoringUptimeCheckConfig_update(randString(t, 4), "mypath", "password1", project, host),
+				Config: testAccMonitoringUptimeCheckConfig_update(suffix, "mypath", "password1", project, host),
 			},
 			{
 				ResourceName:            "google_monitoring_uptime_check_config.http",
@@ -27,7 +28,7 @@ func TestAccMonitoringUptimeCheckConfig_update(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"http_check.0.auth_info.0.password"},
 			},
 			{
-				Config: testAccMonitoringUptimeCheckConfig_update(randString(t, 4), "", "password2", project, host),
+				Config: testAccMonitoringUptimeCheckConfig_update(suffix, "", "password2", project, host),
 			},
 			{
 				ResourceName:            "google_monitoring_uptime_check_config.http",
@@ -44,6 +45,7 @@ func TestAccMonitoringUptimeCheckConfig_update(t *testing.T) {
 func TestAccMonitoringUptimeCheckConfig_changeNonUpdatableFields(t *testing.T) {
 	t.Parallel()
 	project := getTestProjectFromEnv()
+	suffix := randString(t, 4)
 
 	vcrTest(t, resource.TestCase{
 		PreCheck:     func() { testAccPreCheck(t) },
@@ -51,7 +53,7 @@ func TestAccMonitoringUptimeCheckConfig_changeNonUpdatableFields(t *testing.T) {
 		CheckDestroy: testAccCheckMonitoringUptimeCheckConfigDestroyProducer(t),
 		Steps: []resource.TestStep{
 			{
-				Config: testAccMonitoringUptimeCheckConfig_update(randString(t, 4), "mypath", "password1", project, "192.168.1.1"),
+				Config: testAccMonitoringUptimeCheckConfig_update(suffix, "mypath", "password1", project, "192.168.1.1"),
 			},
 			{
 				ResourceName:            "google_monitoring_uptime_check_config.http",
@@ -60,7 +62,7 @@ func TestAccMonitoringUptimeCheckConfig_changeNonUpdatableFields(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"http_check.0.auth_info.0.password"},
 			},
 			{
-				Config: testAccMonitoringUptimeCheckConfig_update(randString(t, 4), "mypath", "password1", project, "192.168.1.2"),
+				Config: testAccMonitoringUptimeCheckConfig_update(suffix, "mypath", "password1", project, "192.168.1.2"),
 			},
 			{
 				ResourceName:            "google_monitoring_uptime_check_config.http",
@@ -69,7 +71,7 @@ func TestAccMonitoringUptimeCheckConfig_changeNonUpdatableFields(t *testing.T) {
 				ImportStateVerifyIgnore: []string{"http_check.0.auth_info.0.password"},
 			},
 			{
-				Config: testAccMonitoringUptimeCheckConfig_update(randString(t, 4), "mypath", "password2", project, "192.168.1.2"),
+				Config: testAccMonitoringUptimeCheckConfig_update(suffix, "mypath", "password2", project, "192.168.1.2"),
 			},
 			{
 				ResourceName:            "google_monitoring_uptime_check_config.http",
@@ -81,14 +83,15 @@ func TestAccMonitoringUptimeCheckConfig_changeNonUpdatableFields(t *testing.T) {
 	})
 }
 
-func testAccMonitoringUptimeCheckConfig_update(suffix, path, project, pwd, host string) string {
+func testAccMonitoringUptimeCheckConfig_update(suffix, path, pwd, project, host string) string {
 	return fmt.Sprintf(`
 resource "google_monitoring_uptime_check_config" "http" {
   display_name = "http-uptime-check-%s"
   timeout      = "60s"
+  checker_type = "STATIC_IP_CHECKERS"
 
   http_check {
-    path = "/%s"
+    path = "%s"
     port = "8010"
     request_method = "GET"
     auth_info {
@@ -110,6 +113,6 @@ resource "google_monitoring_uptime_check_config" "http" {
     matcher = "CONTAINS_STRING"
   }
 }
-`, suffix, path, project, pwd, host,
+`, suffix, path, pwd, project, host,
 	)
 }
